@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Простой форум</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #messageList {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #messageList div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>TryBox Forum</h1>
+    
+    <!-- Форма для ввода имени пользователя и сообщения -->
+    <form id="messageForm">
+        <label for="username">NAME:</label>
+        <input type="text" id="username" value="User" enabled>
+        <br>
+        <label for="message">Message:</label>
+        <textarea id="message" required></textarea>
+        <br>
+        <button type="submit">send</button>
+    </form>
+    
+    <!-- Отображение сообщений -->
+    <div id="messageList">
+        <!-- Сообщения будут добавляться сюда -->
+    </div>
+
+    <script>
+        // Функция для добавления сообщения в JSON-файл
+        function addMessage(username, message) {
+            // Загрузить существующие сообщения из JSON-файла
+            fetch('messages.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Добавить новое сообщение
+                    data.messages.push({ username, message });
+
+                    // Сохранить обновленные сообщения в JSON-файл
+                    fetch('messages.json', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(() => {
+                            // Обновить отображение сообщений
+                            displayMessages(data.messages);
+                        });
+                });
+        }
+
+        // Функция для отображения сообщений
+        function displayMessages(messages) {
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+
+            messages.forEach(message => {
+                const messageItem = document.createElement('div');
+                messageItem.innerHTML = `<strong>${message.username}:</strong> ${message.message}`;
+                messageList.appendChild(messageItem);
+            });
+        }
+
+        // Обработчик отправки формы
+        document.getElementById('messageForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value;
+            addMessage(username, message);
+            document.getElementById('message').value = '';
+        });
+
+        // Инициализация: Загрузка и отображение существующих сообщений
+        fetch('messages.json')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.messages) {
+                    data.messages = [];
+                }
+                displayMessages(data.messages);
+            });
+    </script>
+</body>
+</html>
